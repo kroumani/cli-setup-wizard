@@ -35,7 +35,9 @@ function buildCliArgs(cli, message, sessionId) {
       if (sessionId) args.push('--continue');
       return { cmd: 'claude', args };
     case 'gemini':
-      return { cmd: 'gemini', args: ['-p', message, '--output-format', 'text'] };
+      const gArgs = ['-p', message, '--output-format', 'text'];
+      if (sessionId) gArgs.push('--resume');
+      return { cmd: 'gemini', args: gArgs };
     case 'codex':
       return { cmd: 'codex', args: ['exec', '--skip-git-repo-check', message] };
     default:
@@ -110,6 +112,14 @@ describe('buildCliArgs', () => {
     assert.deepStrictEqual(result, {
       cmd: 'gemini',
       args: ['-p', 'test prompt', '--output-format', 'text']
+    });
+  });
+
+  it('adds --resume for gemini with sessionId', () => {
+    const result = buildCliArgs('gemini', 'follow up', 'session-1');
+    assert.deepStrictEqual(result, {
+      cmd: 'gemini',
+      args: ['-p', 'follow up', '--output-format', 'text', '--resume']
     });
   });
 

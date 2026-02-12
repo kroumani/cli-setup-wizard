@@ -323,6 +323,13 @@
       margin-left: 2px;
     }
     @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+    .elapsed-timer {
+      display: inline-block;
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-left: 8px;
+      font-variant-numeric: tabular-nums;
+    }
 
     .welcome-msg {
       text-align: center;
@@ -639,17 +646,32 @@ function addStreamingMessage(cli) {
 
   msg.innerHTML = `
     <div class="msg-avatar ${cli}">${avatarLabel}</div>
-    <div class="msg-bubble"><span class="streaming-indicator"></span></div>
+    <div class="msg-bubble"><span class="streaming-indicator"></span><span class="elapsed-timer" data-start="${Date.now()}"></span></div>
   `;
 
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
+
+  // Start elapsed timer
+  const timer = msg.querySelector('.elapsed-timer');
+  const startTime = Date.now();
+  msg._timerInterval = setInterval(() => {
+    const secs = Math.floor((Date.now() - startTime) / 1000);
+    if (secs >= 5) {
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      timer.textContent = m > 0 ? `${m}m ${s}s` : `${s}s`;
+    }
+  }, 1000);
+
   return msg;
 }
 
 function updateStreamingMessage(cli, text) {
   const msg = document.getElementById(`streaming-${cli}`);
   if (!msg) return;
+  // Stop timer once we get actual content
+  if (msg._timerInterval) { clearInterval(msg._timerInterval); msg._timerInterval = null; }
   const bubble = msg.querySelector('.msg-bubble');
   bubble.innerHTML = escapeHtml(text) + '<span class="streaming-indicator"></span>';
   const chat = document.getElementById(`chat-${cli}`);
@@ -659,9 +681,12 @@ function updateStreamingMessage(cli, text) {
 function finalizeStreamingMessage(cli) {
   const msg = document.getElementById(`streaming-${cli}`);
   if (!msg) return;
+  if (msg._timerInterval) { clearInterval(msg._timerInterval); msg._timerInterval = null; }
   const bubble = msg.querySelector('.msg-bubble');
   const cursor = bubble.querySelector('.streaming-indicator');
   if (cursor) cursor.remove();
+  const timer = bubble.querySelector('.elapsed-timer');
+  if (timer) timer.remove();
   msg.removeAttribute('id');
 }
 

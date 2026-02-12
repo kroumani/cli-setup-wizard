@@ -136,6 +136,7 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
     case 'gemini':
       cmd = 'gemini';
       args = ['-p', message, '--output-format', 'text'];
+      if (sessionId) args.push('--resume');
       break;
     case 'codex':
       cmd = 'codex';
