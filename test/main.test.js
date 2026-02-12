@@ -31,7 +31,7 @@ function getEnhancedEnv() {
 function buildCliArgs(cli, message, sessionId) {
   switch (cli) {
     case 'claude':
-      const args = ['-p', message, '--output-format', 'stream-json'];
+      const args = ['-p', message, '--output-format', 'text'];
       if (sessionId) args.push('--continue');
       return { cmd: 'claude', args };
     case 'gemini':
@@ -91,11 +91,11 @@ describe('getEnhancedEnv', () => {
 });
 
 describe('buildCliArgs', () => {
-  it('builds correct claude args with stream-json', () => {
+  it('builds correct claude args with text', () => {
     const result = buildCliArgs('claude', 'hello world');
     assert.deepStrictEqual(result, {
       cmd: 'claude',
-      args: ['-p', 'hello world', '--output-format', 'stream-json']
+      args: ['-p', 'hello world', '--output-format', 'text']
     });
   });
 
@@ -103,7 +103,7 @@ describe('buildCliArgs', () => {
     const result = buildCliArgs('claude', 'follow up', 'session-123');
     assert.deepStrictEqual(result, {
       cmd: 'claude',
-      args: ['-p', 'follow up', '--output-format', 'stream-json', '--continue']
+      args: ['-p', 'follow up', '--output-format', 'text', '--continue']
     });
   });
 
