@@ -1,13 +1,14 @@
 {
   "name": "cli-setup-wizard",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Chat interface for Gemini, Codex, and Claude CLI tools",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --publish never",
     "build:mac": "electron-builder --mac --publish never",
-    "build:win": "electron-builder --win --publish never"
+    "build:win": "electron-builder --win --publish never",
+    "test": "node --test test/main.test.js"
   },
   "author": "PQME Pro",
   "license": "MIT",
@@ -32,7 +33,8 @@
     "files": [
       "**/*",
       "!**/*.md",
-      "!setup-cli-tools.sh"
+      "!setup-cli-tools.sh",
+      "!test"
     ]
   }
 }

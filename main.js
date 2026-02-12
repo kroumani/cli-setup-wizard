@@ -134,13 +134,12 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
       cmd = 'claude';
       break;
     case 'gemini':
-      // Gemini CLI: pipe the prompt
       cmd = 'gemini';
-      args = ['-p', message];
+      args = ['-p', message, '--output-format', 'text'];
       break;
     case 'codex':
       cmd = 'codex';
-      args = ['-q', message];
+      args = ['exec', message];
       break;
     default:
       return { success: false, error: `Unknown CLI: ${cli}` };
