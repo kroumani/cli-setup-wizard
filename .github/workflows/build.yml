@@ -1,4 +1,4 @@
-name: Build Mac App
+name: Build App
 
 on:
   push:
@@ -12,61 +12,56 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-mac:
     runs-on: macos-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build Mac App
-        run: npm run build
-
-      - name: List dist folder
-        run: ls -la dist/
-
-      - name: Upload DMG
-        uses: actions/upload-artifact@v4
+      - run: npm install
+      - run: npm run build:mac
+      - uses: actions/upload-artifact@v4
         with:
           name: CLI-Setup-Wizard-Mac
-          path: dist/*.dmg
+          path: |
+            dist/*.dmg
+            dist/*.zip
 
-      - name: Upload ZIP
-        uses: actions/upload-artifact@v4
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: CLI-Setup-Wizard-Mac-ZIP
-          path: dist/*.zip
+          node-version: '20'
+      - run: npm install
+      - run: npm run build:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: CLI-Setup-Wizard-Win
+          path: |
+            dist/*.exe
+            dist/*.zip
 
   release:
-    needs: build
+    needs: [build-mac, build-win]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: write
-
     steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           path: artifacts
-
       - name: List artifacts
         run: find artifacts -type f
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v1
         with:
           files: |
             artifacts/**/*.dmg
             artifacts/**/*.zip
+            artifacts/**/*.exe
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

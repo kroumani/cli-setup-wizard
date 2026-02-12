@@ -5,564 +5,888 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CLI Setup Wizard</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    :root {
+      --bg: #0f0f1a;
+      --bg-card: rgba(255,255,255,0.04);
+      --bg-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.1);
+      --text: #e2e8f0;
+      --text-dim: #64748b;
+      --accent-blue: #38bdf8;
+      --accent-purple: #a78bfa;
+      --accent-green: #34d399;
+      --accent-red: #f87171;
+      --accent-amber: #fbbf24;
+      --radius: 12px;
+      /* CLI brand colors */
+      --gemini-color: #4285f4;
+      --codex-color: #10a37f;
+      --claude-color: #d97706;
     }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: #fff;
-      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
       -webkit-app-region: drag;
     }
 
-    .container {
-      padding: 60px 40px 40px;
+    /* ── Sidebar ────────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      background: rgba(0,0,0,0.3);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
       -webkit-app-region: no-drag;
+      flex-shrink: 0;
     }
-
-    h1 {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+    .sidebar-header {
+      padding: 20px 16px 12px;
+      -webkit-app-region: drag;
+    }
+    .sidebar-header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
-    .subtitle {
-      color: #8892b0;
-      font-size: 14px;
-      margin-bottom: 32px;
+    .sidebar-header .subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 2px;
     }
 
-    .step {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s ease;
+    .sidebar-section {
+      padding: 8px 8px;
+    }
+    .sidebar-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-dim);
+      padding: 8px 10px 4px;
+      font-weight: 600;
     }
 
-    .step.active {
-      border-color: #00d4ff;
-      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
-    }
-
-    .step.completed {
-      border-color: #00ff88;
-    }
-
-    .step.error {
-      border-color: #ff4757;
-    }
-
-    .step-header {
+    .cli-btn {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s;
+      -webkit-app-region: no-drag;
     }
+    .cli-btn:hover { background: var(--bg-hover); }
+    .cli-btn.active { background: var(--bg-hover); border: 1px solid var(--border); }
 
-    .step-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+    .cli-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .step.completed .step-icon {
-      background: linear-gradient(135deg, #00ff88, #00d4ff);
-    }
-
-    .step.error .step-icon {
-      background: linear-gradient(135deg, #ff4757, #ff6b81);
-    }
-
-    .step-title {
-      font-weight: 600;
       font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .cli-icon.gemini { background: rgba(66,133,244,0.15); color: var(--gemini-color); }
+    .cli-icon.codex { background: rgba(16,163,127,0.15); color: var(--codex-color); }
+    .cli-icon.claude { background: rgba(217,119,6,0.15); color: var(--claude-color); }
+    .cli-icon.setup { background: rgba(56,189,248,0.15); color: var(--accent-blue); }
+
+    .cli-meta { flex: 1; min-width: 0; }
+    .cli-name { font-weight: 600; }
+    .cli-version {
+      font-size: 10px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .step-subtitle {
-      color: #8892b0;
-      font-size: 12px;
+    .cli-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
     }
+    .cli-status-dot.installed { background: var(--accent-green); }
+    .cli-status-dot.missing { background: var(--accent-red); }
+    .cli-status-dot.checking { background: var(--accent-amber); animation: pulse 1.5s infinite; }
 
-    .step-status {
-      margin-left: auto;
-      font-size: 13px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.1);
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 12px;
+      border-top: 1px solid var(--border);
     }
-
-    .step.completed .step-status {
-      background: rgba(0, 255, 136, 0.2);
-      color: #00ff88;
-    }
-
-    .step.error .step-status {
-      background: rgba(255, 71, 87, 0.2);
-      color: #ff4757;
-    }
-
-    .step.active .step-status {
-      background: rgba(0, 212, 255, 0.2);
-      color: #00d4ff;
-    }
-
-    .step-content {
-      color: #8892b0;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .step-actions {
-      margin-top: 16px;
-      display: flex;
-      gap: 12px;
-    }
-
-    button {
-      padding: 10px 20px;
+    .install-all-btn {
+      width: 100%;
+      padding: 10px;
       border-radius: 8px;
       border: none;
-      font-size: 14px;
-      font-weight: 500;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: transform 0.15s, box-shadow 0.15s;
+      -webkit-app-region: no-drag;
+    }
+    .install-all-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(56,189,248,0.3);
+    }
+    .install-all-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Main Panel ─────────────────────────────────── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       -webkit-app-region: no-drag;
     }
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    /* Tab header */
+    .tab-header {
+      padding: 12px 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      -webkit-app-region: drag;
     }
-
-    .btn-primary {
-      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-      color: white;
+    .tab-title {
+      font-size: 15px;
+      font-weight: 600;
     }
-
-    .btn-primary:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+    .tab-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 600;
     }
+    .tab-badge.installed { background: rgba(52,211,153,0.15); color: var(--accent-green); }
+    .tab-badge.missing { background: rgba(248,113,113,0.15); color: var(--accent-red); }
 
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
+    .tab-actions {
+      margin-left: auto;
+      display: flex;
+      gap: 6px;
+      -webkit-app-region: no-drag;
     }
-
-    .btn-secondary:hover:not(:disabled) {
-      background: rgba(255, 255, 255, 0.2);
+    .tab-action-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
     }
+    .tab-action-btn:hover { background: var(--bg-hover); color: var(--text); }
 
-    .spinner {
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top-color: #00d4ff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
-      margin-right: 8px;
+    /* ── Panels ─────────────────────────────────────── */
+    .panel { display: none; flex: 1; flex-direction: column; }
+    .panel.active { display: flex; }
+
+    /* ── Setup Panel ────────────────────────────────── */
+    .setup-panel {
+      padding: 24px;
+      overflow-y: auto;
     }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .setup-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 12px;
     }
-
-    .cli-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .cli-card {
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      padding: 16px;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .cli-card.installed {
-      border-color: #00ff88;
-    }
-
-    .cli-card.installing {
-      border-color: #00d4ff;
-    }
-
-    .cli-card.error {
-      border-color: #ff4757;
-    }
-
-    .cli-logo {
-      font-size: 32px;
+    .setup-card h3 {
+      font-size: 14px;
+      font-weight: 600;
       margin-bottom: 8px;
     }
-
-    .cli-name {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .cli-status {
-      font-size: 11px;
-      color: #8892b0;
-    }
-
-    .cli-card.installed .cli-status {
-      color: #00ff88;
-    }
-
-    .cli-card.error .cli-status {
-      color: #ff4757;
-    }
-
-    .progress-bar {
-      height: 4px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 2px;
-      margin-top: 24px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
-      border-radius: 2px;
-      transition: width 0.5s ease;
-    }
-
-    .footer {
-      text-align: center;
-      color: #8892b0;
-      font-size: 12px;
-      margin-top: 24px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .message {
-      padding: 12px 16px;
-      border-radius: 8px;
-      margin-top: 12px;
+    .setup-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
       font-size: 13px;
     }
+    .setup-check { font-size: 16px; }
+    .setup-btn {
+      margin-left: auto;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .setup-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .message.info {
-      background: rgba(0, 212, 255, 0.1);
-      border: 1px solid rgba(0, 212, 255, 0.3);
-      color: #00d4ff;
+    /* ── Chat Panel ─────────────────────────────────── */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .chat-area::-webkit-scrollbar { width: 6px; }
+    .chat-area::-webkit-scrollbar-track { background: transparent; }
+    .chat-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+    .message {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 10px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .message.user { flex-direction: row-reverse; }
+
+    .msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .msg-avatar.user { background: rgba(167,139,250,0.2); color: var(--accent-purple); }
+    .msg-avatar.gemini { background: rgba(66,133,244,0.2); color: var(--gemini-color); }
+    .msg-avatar.codex { background: rgba(16,163,127,0.2); color: var(--codex-color); }
+    .msg-avatar.claude { background: rgba(217,119,6,0.2); color: var(--claude-color); }
+
+    .msg-bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .message.user .msg-bubble {
+      background: rgba(167,139,250,0.15);
+      border: 1px solid rgba(167,139,250,0.2);
+    }
+    .message.assistant .msg-bubble {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+    .message.error .msg-bubble {
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.2);
+      color: var(--accent-red);
+    }
+    .message.system .msg-bubble {
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.15);
+      color: var(--accent-blue);
+      font-size: 12px;
+      max-width: 100%;
+      text-align: center;
     }
 
-    .message.success {
-      background: rgba(0, 255, 136, 0.1);
-      border: 1px solid rgba(0, 255, 136, 0.3);
-      color: #00ff88;
+    .streaming-indicator {
+      display: inline-block;
+      width: 6px;
+      height: 14px;
+      background: var(--accent-blue);
+      border-radius: 1px;
+      animation: blink 0.8s infinite;
+      vertical-align: text-bottom;
+      margin-left: 2px;
     }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
 
-    .message.error {
-      background: rgba(255, 71, 87, 0.1);
-      border: 1px solid rgba(255, 71, 87, 0.3);
-      color: #ff4757;
+    .welcome-msg {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+    }
+    .welcome-msg h2 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .welcome-msg p { font-size: 13px; margin-bottom: 4px; }
+
+    /* ── Chat Input ─────────────────────────────────── */
+    .chat-input-area {
+      padding: 12px 20px 16px;
+      border-top: 1px solid var(--border);
+    }
+    .chat-input-wrap {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      resize: none;
+      outline: none;
+      min-height: 40px;
+      max-height: 120px;
+      transition: border-color 0.15s;
+    }
+    .chat-input:focus { border-color: var(--accent-blue); }
+    .chat-input::placeholder { color: var(--text-dim); }
+
+    .send-btn {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .send-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(56,189,248,0.3);
+    }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .send-btn.stop { background: var(--accent-red); }
+
+    .not-installed-bar {
+      padding: 12px 20px;
+      background: rgba(248,113,113,0.08);
+      border-top: 1px solid rgba(248,113,113,0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--accent-red);
+    }
+    .not-installed-bar button {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      background: var(--accent-red);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>CLI Setup Wizard</h1>
-    <p class="subtitle">Install Gemini, Codex & Claude in one click</p>
 
-    <!-- Step 1: Prerequisites -->
-    <div class="step active" id="step-prereq">
-      <div class="step-header">
-        <div class="step-icon">1</div>
-        <div>
-          <div class="step-title">Prerequisites</div>
-          <div class="step-subtitle">Homebrew & Node.js</div>
-        </div>
-        <div class="step-status" id="prereq-status">Checking...</div>
+<!-- ── Sidebar ─────────────────────────────────────── -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h1>CLI Wizard</h1>
+    <div class="subtitle">Install & chat with AI CLIs</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Setup</div>
+    <button class="cli-btn" data-panel="setup" onclick="switchPanel('setup')">
+      <div class="cli-icon setup">&#9881;</div>
+      <div class="cli-meta">
+        <div class="cli-name">Setup</div>
+        <div class="cli-version" id="setup-status">Checking...</div>
       </div>
-      <div class="step-content" id="prereq-content">
-        Checking for required dependencies...
+    </button>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Chat</div>
+    <button class="cli-btn" data-panel="gemini" onclick="switchPanel('gemini')">
+      <div class="cli-icon gemini">G</div>
+      <div class="cli-meta">
+        <div class="cli-name">Gemini</div>
+        <div class="cli-version" id="gemini-sidebar-version">Checking...</div>
       </div>
-      <div class="step-actions" id="prereq-actions"></div>
+      <div class="cli-status-dot checking" id="gemini-dot"></div>
+    </button>
+    <button class="cli-btn" data-panel="codex" onclick="switchPanel('codex')">
+      <div class="cli-icon codex">Cx</div>
+      <div class="cli-meta">
+        <div class="cli-name">Codex</div>
+        <div class="cli-version" id="codex-sidebar-version">Checking...</div>
+      </div>
+      <div class="cli-status-dot checking" id="codex-dot"></div>
+    </button>
+    <button class="cli-btn" data-panel="claude" onclick="switchPanel('claude')">
+      <div class="cli-icon claude">Cl</div>
+      <div class="cli-meta">
+        <div class="cli-name">Claude</div>
+        <div class="cli-version" id="claude-sidebar-version">Checking...</div>
+      </div>
+      <div class="cli-status-dot checking" id="claude-dot"></div>
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <button class="install-all-btn" id="install-all-btn" onclick="installAll()">
+      Install All CLIs
+    </button>
+  </div>
+</div>
+
+<!-- ── Main ─────────────────────────────────────────── -->
+<div class="main">
+
+  <!-- Setup Panel -->
+  <div class="panel active" id="panel-setup">
+    <div class="tab-header">
+      <span class="tab-title">Setup</span>
     </div>
-
-    <!-- Step 2: CLI Tools -->
-    <div class="step" id="step-cli">
-      <div class="step-header">
-        <div class="step-icon">2</div>
-        <div>
-          <div class="step-title">CLI Tools</div>
-          <div class="step-subtitle">Gemini, Codex, Claude</div>
-        </div>
-        <div class="step-status" id="cli-status">Pending</div>
-      </div>
-      <div class="cli-grid">
-        <div class="cli-card" id="cli-gemini">
-          <div class="cli-logo">✨</div>
-          <div class="cli-name">Gemini</div>
-          <div class="cli-status">Not installed</div>
-        </div>
-        <div class="cli-card" id="cli-codex">
-          <div class="cli-logo">🤖</div>
-          <div class="cli-name">Codex</div>
-          <div class="cli-status">Not installed</div>
-        </div>
-        <div class="cli-card" id="cli-claude">
-          <div class="cli-logo">🧠</div>
-          <div class="cli-name">Claude</div>
-          <div class="cli-status">Not installed</div>
+    <div class="setup-panel" id="setup-content">
+      <div class="setup-card">
+        <h3>Prerequisites</h3>
+        <div id="prereq-rows">
+          <div class="setup-row"><span class="setup-check">&#8987;</span> Checking prerequisites...</div>
         </div>
       </div>
-      <div class="step-actions" id="cli-actions">
-        <button class="btn-primary" id="install-all-btn" disabled>Install All</button>
-      </div>
-    </div>
-
-    <!-- Step 3: Authentication -->
-    <div class="step" id="step-auth">
-      <div class="step-header">
-        <div class="step-icon">3</div>
-        <div>
-          <div class="step-title">Authentication</div>
-          <div class="step-subtitle">Sign in to each service</div>
+      <div class="setup-card">
+        <h3>CLI Tools</h3>
+        <div id="cli-rows">
+          <div class="setup-row"><span class="setup-check">&#8987;</span> Checking CLI installations...</div>
         </div>
-        <div class="step-status" id="auth-status">Pending</div>
       </div>
-      <div class="step-content" id="auth-content">
-        After installation, authenticate each CLI tool via browser.
-      </div>
-      <div class="step-actions" id="auth-actions">
-        <button class="btn-secondary" id="auth-gemini-btn" disabled>Open Gemini</button>
-        <button class="btn-secondary" id="auth-codex-btn" disabled>Open Codex</button>
-        <button class="btn-secondary" id="auth-claude-btn" disabled>Open Claude</button>
-      </div>
-    </div>
-
-    <div class="progress-bar">
-      <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
-    </div>
-
-    <div class="footer">
-      Press each button to install, then authenticate in your browser
     </div>
   </div>
 
-  <script>
-    const state = {
-      prereq: { homebrew: false, node: false },
-      cli: { gemini: false, codex: false, claude: false },
-      progress: 0
-    };
+  <!-- Gemini Chat Panel -->
+  <div class="panel" id="panel-gemini">
+    <div class="tab-header">
+      <span class="tab-title">Gemini</span>
+      <span class="tab-badge missing" id="gemini-badge">checking</span>
+      <div class="tab-actions">
+        <button class="tab-action-btn" onclick="api.openTerminalWithCli('gemini')">Open in Terminal</button>
+        <button class="tab-action-btn" onclick="clearChat('gemini')">Clear</button>
+      </div>
+    </div>
+    <div class="chat-area" id="chat-gemini">
+      <div class="welcome-msg">
+        <h2>Gemini CLI</h2>
+        <p>Google's AI assistant in your terminal.</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-dim)">Type a message below to chat.</p>
+      </div>
+    </div>
+    <div class="not-installed-bar" id="gemini-install-bar" style="display:none">
+      <span>Gemini CLI is not installed.</span>
+      <button onclick="installSingle('gemini')">Install Now</button>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea class="chat-input" id="input-gemini" placeholder="Message Gemini..." rows="1"
+          onkeydown="handleKey(event, 'gemini')"></textarea>
+        <button class="send-btn" id="send-gemini" onclick="sendMsg('gemini')">Send</button>
+      </div>
+    </div>
+  </div>
 
-    function updateProgress() {
-      let total = 0;
-      if (state.prereq.homebrew) total += 10;
-      if (state.prereq.node) total += 10;
-      if (state.cli.gemini) total += 25;
-      if (state.cli.codex) total += 25;
-      if (state.cli.claude) total += 30;
-      state.progress = total;
-      document.getElementById('progress-fill').style.width = `${total}%`;
+  <!-- Codex Chat Panel -->
+  <div class="panel" id="panel-codex">
+    <div class="tab-header">
+      <span class="tab-title">Codex</span>
+      <span class="tab-badge missing" id="codex-badge">checking</span>
+      <div class="tab-actions">
+        <button class="tab-action-btn" onclick="api.openTerminalWithCli('codex')">Open in Terminal</button>
+        <button class="tab-action-btn" onclick="clearChat('codex')">Clear</button>
+      </div>
+    </div>
+    <div class="chat-area" id="chat-codex">
+      <div class="welcome-msg">
+        <h2>Codex CLI</h2>
+        <p>OpenAI's coding agent.</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-dim)">Type a message below to chat.</p>
+      </div>
+    </div>
+    <div class="not-installed-bar" id="codex-install-bar" style="display:none">
+      <span>Codex CLI is not installed.</span>
+      <button onclick="installSingle('codex')">Install Now</button>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea class="chat-input" id="input-codex" placeholder="Message Codex..." rows="1"
+          onkeydown="handleKey(event, 'codex')"></textarea>
+        <button class="send-btn" id="send-codex" onclick="sendMsg('codex')">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Claude Chat Panel -->
+  <div class="panel" id="panel-claude">
+    <div class="tab-header">
+      <span class="tab-title">Claude</span>
+      <span class="tab-badge missing" id="claude-badge">checking</span>
+      <div class="tab-actions">
+        <button class="tab-action-btn" onclick="api.openTerminalWithCli('claude')">Open in Terminal</button>
+        <button class="tab-action-btn" onclick="clearChat('claude')">Clear</button>
+      </div>
+    </div>
+    <div class="chat-area" id="chat-claude">
+      <div class="welcome-msg">
+        <h2>Claude CLI</h2>
+        <p>Anthropic's Claude Code assistant.</p>
+        <p style="margin-top:8px;font-size:12px;color:var(--text-dim)">Type a message below to chat.</p>
+      </div>
+    </div>
+    <div class="not-installed-bar" id="claude-install-bar" style="display:none">
+      <span>Claude CLI is not installed.</span>
+      <button onclick="installSingle('claude')">Install Now</button>
+    </div>
+    <div class="chat-input-area">
+      <div class="chat-input-wrap">
+        <textarea class="chat-input" id="input-claude" placeholder="Message Claude..." rows="1"
+          onkeydown="handleKey(event, 'claude')"></textarea>
+        <button class="send-btn" id="send-claude" onclick="sendMsg('claude')">Send</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── State ───────────────────────────────────────────
+const cliState = {
+  gemini:  { installed: false, version: null, streaming: false, hasSession: false },
+  codex:   { installed: false, version: null, streaming: false, hasSession: false },
+  claude:  { installed: false, version: null, streaming: false, hasSession: false }
+};
+let activePanel = 'setup';
+let streamBuffers = { gemini: '', codex: '', claude: '' };
+
+// ── Panel switching ─────────────────────────────────
+function switchPanel(name) {
+  activePanel = name;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.cli-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`panel-${name}`).classList.add('active');
+  document.querySelector(`.cli-btn[data-panel="${name}"]`).classList.add('active');
+  // Focus input
+  const input = document.getElementById(`input-${name}`);
+  if (input) setTimeout(() => input.focus(), 50);
+}
+
+// ── Chat helpers ────────────────────────────────────
+function addMessage(cli, type, text) {
+  const chat = document.getElementById(`chat-${cli}`);
+  // Remove welcome message
+  const welcome = chat.querySelector('.welcome-msg');
+  if (welcome) welcome.remove();
+
+  const msg = document.createElement('div');
+  msg.className = `message ${type}`;
+
+  const avatarLabel = type === 'user' ? 'U' : cli === 'gemini' ? 'G' : cli === 'codex' ? 'Cx' : 'Cl';
+  const avatarClass = type === 'user' ? 'user' : cli;
+
+  if (type === 'system') {
+    msg.innerHTML = `<div class="msg-bubble">${text}</div>`;
+  } else {
+    msg.innerHTML = `
+      <div class="msg-avatar ${avatarClass}">${avatarLabel}</div>
+      <div class="msg-bubble">${escapeHtml(text)}</div>
+    `;
+  }
+
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  return msg;
+}
+
+function addStreamingMessage(cli) {
+  const chat = document.getElementById(`chat-${cli}`);
+  const welcome = chat.querySelector('.welcome-msg');
+  if (welcome) welcome.remove();
+
+  const msg = document.createElement('div');
+  msg.className = 'message assistant';
+  msg.id = `streaming-${cli}`;
+
+  const avatarLabel = cli === 'gemini' ? 'G' : cli === 'codex' ? 'Cx' : 'Cl';
+
+  msg.innerHTML = `
+    <div class="msg-avatar ${cli}">${avatarLabel}</div>
+    <div class="msg-bubble"><span class="streaming-indicator"></span></div>
+  `;
+
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+  return msg;
+}
+
+function updateStreamingMessage(cli, text) {
+  const msg = document.getElementById(`streaming-${cli}`);
+  if (!msg) return;
+  const bubble = msg.querySelector('.msg-bubble');
+  bubble.innerHTML = escapeHtml(text) + '<span class="streaming-indicator"></span>';
+  const chat = document.getElementById(`chat-${cli}`);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function finalizeStreamingMessage(cli) {
+  const msg = document.getElementById(`streaming-${cli}`);
+  if (!msg) return;
+  const bubble = msg.querySelector('.msg-bubble');
+  const cursor = bubble.querySelector('.streaming-indicator');
+  if (cursor) cursor.remove();
+  msg.removeAttribute('id');
+}
+
+function clearChat(cli) {
+  const chat = document.getElementById(`chat-${cli}`);
+  chat.innerHTML = `
+    <div class="welcome-msg">
+      <h2>${cli.charAt(0).toUpperCase() + cli.slice(1)} CLI</h2>
+      <p>Chat cleared. Type a message to start again.</p>
+    </div>
+  `;
+  cliState[cli].hasSession = false;
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ── Sending messages ────────────────────────────────
+async function sendMsg(cli) {
+  const input = document.getElementById(`input-${cli}`);
+  const text = input.value.trim();
+  if (!text || cliState[cli].streaming) return;
+
+  if (!cliState[cli].installed) {
+    addMessage(cli, 'error', `${cli} CLI is not installed. Click "Install Now" to set it up.`);
+    return;
+  }
+
+  input.value = '';
+  input.style.height = 'auto';
+  addMessage(cli, 'user', text);
+
+  // Set streaming state
+  cliState[cli].streaming = true;
+  streamBuffers[cli] = '';
+  updateSendButton(cli);
+  addStreamingMessage(cli);
+
+  const result = await window.api.sendMessage(cli, text, cliState[cli].hasSession);
+
+  cliState[cli].streaming = false;
+  updateSendButton(cli);
+
+  if (result.success) {
+    cliState[cli].hasSession = true;
+    // If we got no streaming data, show the full response
+    if (!streamBuffers[cli]) {
+      updateStreamingMessage(cli, result.response);
     }
+    finalizeStreamingMessage(cli);
+  } else {
+    finalizeStreamingMessage(cli);
+    addMessage(cli, 'error', result.error || 'Something went wrong');
+  }
+}
 
-    function setStepState(stepId, stepState) {
-      const step = document.getElementById(stepId);
-      step.classList.remove('active', 'completed', 'error');
-      if (stepState) step.classList.add(stepState);
+function updateSendButton(cli) {
+  const btn = document.getElementById(`send-${cli}`);
+  if (cliState[cli].streaming) {
+    btn.textContent = 'Stop';
+    btn.className = 'send-btn stop';
+    btn.onclick = () => { window.api.stopProcess(cli); };
+  } else {
+    btn.textContent = 'Send';
+    btn.className = 'send-btn';
+    btn.onclick = () => sendMsg(cli);
+  }
+}
+
+function handleKey(event, cli) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    if (cliState[cli].streaming) {
+      window.api.stopProcess(cli);
+    } else {
+      sendMsg(cli);
     }
+  }
+  // Auto-resize textarea
+  const el = event.target;
+  setTimeout(() => {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }, 0);
+}
 
-    function setCliCardState(cli, cardState, statusText) {
-      const card = document.getElementById(`cli-${cli}`);
-      card.classList.remove('installed', 'installing', 'error');
-      if (cardState) card.classList.add(cardState);
-      card.querySelector('.cli-status').textContent = statusText;
+// ── Streaming handlers ──────────────────────────────
+window.api.onStreamChunk((cli, chunk) => {
+  streamBuffers[cli] += chunk;
+  updateStreamingMessage(cli, streamBuffers[cli]);
+});
+
+window.api.onStreamEnd((cli) => {
+  // Handled in sendMsg callback
+});
+
+// ── Installation ────────────────────────────────────
+async function installSingle(cli) {
+  const bar = document.getElementById(`${cli}-install-bar`);
+  bar.innerHTML = '<span>Installing...</span>';
+
+  const result = await window.api.installCli(cli);
+  if (result.success) {
+    cliState[cli].installed = true;
+    cliState[cli].version = result.message;
+    bar.style.display = 'none';
+    updateSidebar(cli);
+    addMessage(cli, 'system', `${cli} CLI installed successfully! (${result.message})`);
+  } else {
+    bar.innerHTML = `<span>Install failed: ${result.message}</span>
+      <button onclick="installSingle('${cli}')">Retry</button>`;
+  }
+}
+
+async function installAll() {
+  const btn = document.getElementById('install-all-btn');
+  btn.textContent = 'Installing...';
+  btn.disabled = true;
+
+  for (const cli of ['gemini', 'codex', 'claude']) {
+    if (cliState[cli].installed) continue;
+    const dotEl = document.getElementById(`${cli}-dot`);
+    dotEl.className = 'cli-status-dot checking';
+
+    const result = await window.api.installCli(cli);
+    if (result.success) {
+      cliState[cli].installed = true;
+      cliState[cli].version = result.message;
     }
+    updateSidebar(cli);
+  }
 
-    async function checkPrerequisites() {
-      const result = await window.api.checkPrerequisites();
-      state.prereq.homebrew = result.homebrew;
-      state.prereq.node = result.node;
+  btn.textContent = 'Install All CLIs';
+  btn.disabled = false;
+  updateSetupPanel();
+}
 
-      const prereqContent = document.getElementById('prereq-content');
-      const prereqStatus = document.getElementById('prereq-status');
-      const prereqActions = document.getElementById('prereq-actions');
+// ── UI Updates ──────────────────────────────────────
+function updateSidebar(cli) {
+  const st = cliState[cli];
+  const dot = document.getElementById(`${cli}-dot`);
+  const ver = document.getElementById(`${cli}-sidebar-version`);
+  const badge = document.getElementById(`${cli}-badge`);
+  const bar = document.getElementById(`${cli}-install-bar`);
 
-      let content = [];
-      if (result.homebrew) {
-        content.push('✅ Homebrew installed');
-      } else {
-        content.push('❌ Homebrew not found');
-      }
+  dot.className = `cli-status-dot ${st.installed ? 'installed' : 'missing'}`;
+  ver.textContent = st.installed ? (st.version || 'Installed') : 'Not installed';
 
-      if (result.node) {
-        content.push(`✅ Node.js ${result.nodeVersion}`);
-      } else {
-        content.push('❌ Node.js not found');
-      }
+  if (badge) {
+    badge.textContent = st.installed ? 'ready' : 'not installed';
+    badge.className = `tab-badge ${st.installed ? 'installed' : 'missing'}`;
+  }
+  if (bar) {
+    bar.style.display = st.installed ? 'none' : 'flex';
+  }
+}
 
-      prereqContent.innerHTML = content.join('<br>');
+function updateSetupPanel() {
+  const cliRows = document.getElementById('cli-rows');
+  const clis = ['gemini', 'codex', 'claude'];
+  cliRows.innerHTML = clis.map(cli => {
+    const st = cliState[cli];
+    const icon = st.installed ? '&#10003;' : '&#10007;';
+    const color = st.installed ? 'var(--accent-green)' : 'var(--accent-red)';
+    const name = cli.charAt(0).toUpperCase() + cli.slice(1);
+    return `<div class="setup-row">
+      <span class="setup-check" style="color:${color}">${icon}</span>
+      <span>${name}</span>
+      <span style="color:var(--text-dim);font-size:11px;margin-left:4px">${st.version || ''}</span>
+      ${!st.installed ? `<button class="setup-btn" onclick="installSingle('${cli}')">Install</button>` : ''}
+    </div>`;
+  }).join('');
+}
 
-      if (result.homebrew && result.node) {
-        prereqStatus.textContent = 'Ready';
-        setStepState('step-prereq', 'completed');
-        setStepState('step-cli', 'active');
-        document.getElementById('install-all-btn').disabled = false;
-        await checkAllClis();
-      } else {
-        prereqStatus.textContent = 'Action needed';
-        setStepState('step-prereq', 'error');
+// ── Init ────────────────────────────────────────────
+async function init() {
+  // Check prerequisites
+  const prereqs = await window.api.checkPrerequisites();
+  const prereqRows = document.getElementById('prereq-rows');
+  let rows = [];
 
-        let buttons = '';
-        if (!result.homebrew) {
-          buttons += '<button class="btn-primary" onclick="installHomebrew()">Install Homebrew</button>';
-        }
-        if (!result.node && result.homebrew) {
-          buttons += '<button class="btn-primary" onclick="installNode()">Install Node.js</button>';
-        }
-        prereqActions.innerHTML = buttons;
-      }
+  if (prereqs.homebrew !== undefined) {
+    rows.push(`<div class="setup-row">
+      <span class="setup-check" style="color:${prereqs.homebrew ? 'var(--accent-green)' : 'var(--accent-red)'}">
+        ${prereqs.homebrew ? '&#10003;' : '&#10007;'}</span>
+      <span>Homebrew</span>
+    </div>`);
+  }
+  rows.push(`<div class="setup-row">
+    <span class="setup-check" style="color:${prereqs.node ? 'var(--accent-green)' : 'var(--accent-red)'}">
+      ${prereqs.node ? '&#10003;' : '&#10007;'}</span>
+    <span>Node.js</span>
+    <span style="color:var(--text-dim);font-size:11px;margin-left:4px">${prereqs.nodeVersion || ''}</span>
+  </div>`);
+  rows.push(`<div class="setup-row">
+    <span class="setup-check" style="color:${prereqs.npm ? 'var(--accent-green)' : 'var(--accent-red)'}">
+      ${prereqs.npm ? '&#10003;' : '&#10007;'}</span>
+    <span>npm</span>
+  </div>`);
+  prereqRows.innerHTML = rows.join('');
 
-      updateProgress();
-    }
+  const allPrereqs = prereqs.node && prereqs.npm;
+  document.getElementById('setup-status').textContent = allPrereqs ? 'Ready' : 'Action needed';
 
-    async function installHomebrew() {
-      const prereqStatus = document.getElementById('prereq-status');
-      prereqStatus.innerHTML = '<span class="spinner"></span>Installing...';
+  // Check CLIs
+  for (const cli of ['gemini', 'codex', 'claude']) {
+    const result = await window.api.checkCli(cli);
+    cliState[cli].installed = result.installed;
+    cliState[cli].version = result.version;
+    updateSidebar(cli);
+  }
+  updateSetupPanel();
 
-      const result = await window.api.installHomebrew();
+  // Auto-switch to first installed CLI, or stay on setup
+  const firstInstalled = ['claude', 'gemini', 'codex'].find(c => cliState[c].installed);
+  if (firstInstalled) switchPanel(firstInstalled);
+  else switchPanel('setup');
+}
 
-      if (result.manual) {
-        prereqStatus.textContent = 'Manual install';
-        document.getElementById('prereq-content').innerHTML +=
-          '<div class="message info">Complete Homebrew installation in Terminal, then click Recheck.</div>';
-        document.getElementById('prereq-actions').innerHTML =
-          '<button class="btn-primary" onclick="checkPrerequisites()">Recheck</button>';
-      } else {
-        await checkPrerequisites();
-      }
-    }
+// Select setup panel initially
+switchPanel('setup');
+init();
+</script>
 
-    async function installNode() {
-      const prereqStatus = document.getElementById('prereq-status');
-      prereqStatus.innerHTML = '<span class="spinner"></span>Installing...';
-
-      const result = await window.api.installNode();
-
-      if (result.success) {
-        await checkPrerequisites();
-      } else {
-        prereqStatus.textContent = 'Error';
-        document.getElementById('prereq-content').innerHTML +=
-          `<div class="message error">${result.message}</div>`;
-      }
-    }
-
-    async function checkAllClis() {
-      const clis = ['gemini', 'codex', 'claude'];
-      let installedCount = 0;
-
-      for (const cli of clis) {
-        const result = await window.api.checkCli(cli);
-        state.cli[cli] = result.installed;
-
-        if (result.installed) {
-          installedCount++;
-          setCliCardState(cli, 'installed', result.version || 'Installed');
-          document.getElementById(`auth-${cli}-btn`).disabled = false;
-        }
-      }
-
-      updateProgress();
-
-      if (installedCount === 3) {
-        document.getElementById('cli-status').textContent = 'All installed';
-        setStepState('step-cli', 'completed');
-        setStepState('step-auth', 'active');
-        document.getElementById('auth-status').textContent = 'Ready';
-        document.getElementById('install-all-btn').textContent = '✓ All Installed';
-        document.getElementById('install-all-btn').disabled = true;
-      } else if (installedCount > 0) {
-        document.getElementById('cli-status').textContent = `${installedCount}/3 installed`;
-      }
-    }
-
-    async function installAllClis() {
-      const btn = document.getElementById('install-all-btn');
-      btn.innerHTML = '<span class="spinner"></span>Installing...';
-      btn.disabled = true;
-
-      document.getElementById('cli-status').textContent = 'Installing...';
-      setStepState('step-cli', 'active');
-
-      const clis = ['gemini', 'codex', 'claude'];
-
-      for (const cli of clis) {
-        if (state.cli[cli]) continue; // Skip if already installed
-
-        setCliCardState(cli, 'installing', 'Installing...');
-
-        const result = await window.api.installCli(cli);
-
-        if (result.success) {
-          state.cli[cli] = true;
-          setCliCardState(cli, 'installed', result.message);
-          document.getElementById(`auth-${cli}-btn`).disabled = false;
-        } else {
-          setCliCardState(cli, 'error', 'Failed');
-          console.error(`Failed to install ${cli}:`, result.message);
-        }
-
-        updateProgress();
-      }
-
-      await checkAllClis();
-    }
-
-    async function authenticateCli(cli) {
-      const btn = document.getElementById(`auth-${cli}-btn`);
-      btn.innerHTML = '<span class="spinner"></span>Opening...';
-      btn.disabled = true;
-
-      const result = await window.api.authenticateCli(cli);
-
-      btn.textContent = `Open ${cli.charAt(0).toUpperCase() + cli.slice(1)}`;
-      btn.disabled = false;
-
-      if (!result.success) {
-        document.getElementById('auth-content').innerHTML +=
-          `<div class="message error">Error: ${result.message}</div>`;
-      }
-    }
-
-    // Event listeners
-    document.getElementById('install-all-btn').addEventListener('click', installAllClis);
-    document.getElementById('auth-gemini-btn').addEventListener('click', () => authenticateCli('gemini'));
-    document.getElementById('auth-codex-btn').addEventListener('click', () => authenticateCli('codex'));
-    document.getElementById('auth-claude-btn').addEventListener('click', () => authenticateCli('claude'));
-
-    // Initial check
-    checkPrerequisites();
-  </script>
 </body>
 </html>
