@@ -5,8 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --mac",
-    "build:dmg": "electron-builder --mac dmg"
+    "build": "electron-builder --mac --publish never",
+    "build:dmg": "electron-builder --mac dmg --publish never"
   },
   "author": "PQME Pro",
   "license": "MIT",
