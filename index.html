@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI Setup Wizard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      -webkit-app-region: drag;
+    }
+
+    .container {
+      padding: 60px 40px 40px;
+      -webkit-app-region: no-drag;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: #8892b0;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .step {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .step.active {
+      border-color: #00d4ff;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    }
+
+    .step.completed {
+      border-color: #00ff88;
+    }
+
+    .step.error {
+      border-color: #ff4757;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .step-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .step.completed .step-icon {
+      background: linear-gradient(135deg, #00ff88, #00d4ff);
+    }
+
+    .step.error .step-icon {
+      background: linear-gradient(135deg, #ff4757, #ff6b81);
+    }
+
+    .step-title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .step-subtitle {
+      color: #8892b0;
+      font-size: 12px;
+    }
+
+    .step-status {
+      margin-left: auto;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .step.completed .step-status {
+      background: rgba(0, 255, 136, 0.2);
+      color: #00ff88;
+    }
+
+    .step.error .step-status {
+      background: rgba(255, 71, 87, 0.2);
+      color: #ff4757;
+    }
+
+    .step.active .step-status {
+      background: rgba(0, 212, 255, 0.2);
+      color: #00d4ff;
+    }
+
+    .step-content {
+      color: #8892b0;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .step-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      -webkit-app-region: no-drag;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #00d4ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .cli-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .cli-card {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .cli-card.installed {
+      border-color: #00ff88;
+    }
+
+    .cli-card.installing {
+      border-color: #00d4ff;
+    }
+
+    .cli-card.error {
+      border-color: #ff4757;
+    }
+
+    .cli-logo {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .cli-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .cli-status {
+      font-size: 11px;
+      color: #8892b0;
+    }
+
+    .cli-card.installed .cli-status {
+      color: #00ff88;
+    }
+
+    .cli-card.error .cli-status {
+      color: #ff4757;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      margin-top: 24px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+      border-radius: 2px;
+      transition: width 0.5s ease;
+    }
+
+    .footer {
+      text-align: center;
+      color: #8892b0;
+      font-size: 12px;
+      margin-top: 24px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 13px;
+    }
+
+    .message.info {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      color: #00d4ff;
+    }
+
+    .message.success {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      color: #00ff88;
+    }
+
+    .message.error {
+      background: rgba(255, 71, 87, 0.1);
+      border: 1px solid rgba(255, 71, 87, 0.3);
+      color: #ff4757;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CLI Setup Wizard</h1>
+    <p class="subtitle">Install Gemini, Codex & Claude in one click</p>
+
+    <!-- Step 1: Prerequisites -->
+    <div class="step active" id="step-prereq">
+      <div class="step-header">
+        <div class="step-icon">1</div>
+        <div>
+          <div class="step-title">Prerequisites</div>
+          <div class="step-subtitle">Homebrew & Node.js</div>
+        </div>
+        <div class="step-status" id="prereq-status">Checking...</div>
+      </div>
+      <div class="step-content" id="prereq-content">
+        Checking for required dependencies...
+      </div>
+      <div class="step-actions" id="prereq-actions"></div>
+    </div>
+
+    <!-- Step 2: CLI Tools -->
+    <div class="step" id="step-cli">
+      <div class="step-header">
+        <div class="step-icon">2</div>
+        <div>
+          <div class="step-title">CLI Tools</div>
+          <div class="step-subtitle">Gemini, Codex, Claude</div>
+        </div>
+        <div class="step-status" id="cli-status">Pending</div>
+      </div>
+      <div class="cli-grid">
+        <div class="cli-card" id="cli-gemini">
+          <div class="cli-logo">✨</div>
+          <div class="cli-name">Gemini</div>
+          <div class="cli-status">Not installed</div>
+        </div>
+        <div class="cli-card" id="cli-codex">
+          <div class="cli-logo">🤖</div>
+          <div class="cli-name">Codex</div>
+          <div class="cli-status">Not installed</div>
+        </div>
+        <div class="cli-card" id="cli-claude">
+          <div class="cli-logo">🧠</div>
+          <div class="cli-name">Claude</div>
+          <div class="cli-status">Not installed</div>
+        </div>
+      </div>
+      <div class="step-actions" id="cli-actions">
+        <button class="btn-primary" id="install-all-btn" disabled>Install All</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Authentication -->
+    <div class="step" id="step-auth">
+      <div class="step-header">
+        <div class="step-icon">3</div>
+        <div>
+          <div class="step-title">Authentication</div>
+          <div class="step-subtitle">Sign in to each service</div>
+        </div>
+        <div class="step-status" id="auth-status">Pending</div>
+      </div>
+      <div class="step-content" id="auth-content">
+        After installation, authenticate each CLI tool via browser.
+      </div>
+      <div class="step-actions" id="auth-actions">
+        <button class="btn-secondary" id="auth-gemini-btn" disabled>Open Gemini</button>
+        <button class="btn-secondary" id="auth-codex-btn" disabled>Open Codex</button>
+        <button class="btn-secondary" id="auth-claude-btn" disabled>Open Claude</button>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+
+    <div class="footer">
+      Press each button to install, then authenticate in your browser
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      prereq: { homebrew: false, node: false },
+      cli: { gemini: false, codex: false, claude: false },
+      progress: 0
+    };
+
+    function updateProgress() {
+      let total = 0;
+      if (state.prereq.homebrew) total += 10;
+      if (state.prereq.node) total += 10;
+      if (state.cli.gemini) total += 25;
+      if (state.cli.codex) total += 25;
+      if (state.cli.claude) total += 30;
+      state.progress = total;
+      document.getElementById('progress-fill').style.width = `${total}%`;
+    }
+
+    function setStepState(stepId, stepState) {
+      const step = document.getElementById(stepId);
+      step.classList.remove('active', 'completed', 'error');
+      if (stepState) step.classList.add(stepState);
+    }
+
+    function setCliCardState(cli, cardState, statusText) {
+      const card = document.getElementById(`cli-${cli}`);
+      card.classList.remove('installed', 'installing', 'error');
+      if (cardState) card.classList.add(cardState);
+      card.querySelector('.cli-status').textContent = statusText;
+    }
+
+    async function checkPrerequisites() {
+      const result = await window.api.checkPrerequisites();
+      state.prereq.homebrew = result.homebrew;
+      state.prereq.node = result.node;
+
+      const prereqContent = document.getElementById('prereq-content');
+      const prereqStatus = document.getElementById('prereq-status');
+      const prereqActions = document.getElementById('prereq-actions');
+
+      let content = [];
+      if (result.homebrew) {
+        content.push('✅ Homebrew installed');
+      } else {
+        content.push('❌ Homebrew not found');
+      }
+
+      if (result.node) {
+        content.push(`✅ Node.js ${result.nodeVersion}`);
+      } else {
+        content.push('❌ Node.js not found');
+      }
+
+      prereqContent.innerHTML = content.join('<br>');
+
+      if (result.homebrew && result.node) {
+        prereqStatus.textContent = 'Ready';
+        setStepState('step-prereq', 'completed');
+        setStepState('step-cli', 'active');
+        document.getElementById('install-all-btn').disabled = false;
+        await checkAllClis();
+      } else {
+        prereqStatus.textContent = 'Action needed';
+        setStepState('step-prereq', 'error');
+
+        let buttons = '';
+        if (!result.homebrew) {
+          buttons += '<button class="btn-primary" onclick="installHomebrew()">Install Homebrew</button>';
+        }
+        if (!result.node && result.homebrew) {
+          buttons += '<button class="btn-primary" onclick="installNode()">Install Node.js</button>';
+        }
+        prereqActions.innerHTML = buttons;
+      }
+
+      updateProgress();
+    }
+
+    async function installHomebrew() {
+      const prereqStatus = document.getElementById('prereq-status');
+      prereqStatus.innerHTML = '<span class="spinner"></span>Installing...';
+
+      const result = await window.api.installHomebrew();
+
+      if (result.manual) {
+        prereqStatus.textContent = 'Manual install';
+        document.getElementById('prereq-content').innerHTML +=
+          '<div class="message info">Complete Homebrew installation in Terminal, then click Recheck.</div>';
+        document.getElementById('prereq-actions').innerHTML =
+          '<button class="btn-primary" onclick="checkPrerequisites()">Recheck</button>';
+      } else {
+        await checkPrerequisites();
+      }
+    }
+
+    async function installNode() {
+      const prereqStatus = document.getElementById('prereq-status');
+      prereqStatus.innerHTML = '<span class="spinner"></span>Installing...';
+
+      const result = await window.api.installNode();
+
+      if (result.success) {
+        await checkPrerequisites();
+      } else {
+        prereqStatus.textContent = 'Error';
+        document.getElementById('prereq-content').innerHTML +=
+          `<div class="message error">${result.message}</div>`;
+      }
+    }
+
+    async function checkAllClis() {
+      const clis = ['gemini', 'codex', 'claude'];
+      let installedCount = 0;
+
+      for (const cli of clis) {
+        const result = await window.api.checkCli(cli);
+        state.cli[cli] = result.installed;
+
+        if (result.installed) {
+          installedCount++;
+          setCliCardState(cli, 'installed', result.version || 'Installed');
+          document.getElementById(`auth-${cli}-btn`).disabled = false;
+        }
+      }
+
+      updateProgress();
+
+      if (installedCount === 3) {
+        document.getElementById('cli-status').textContent = 'All installed';
+        setStepState('step-cli', 'completed');
+        setStepState('step-auth', 'active');
+        document.getElementById('auth-status').textContent = 'Ready';
+        document.getElementById('install-all-btn').textContent = '✓ All Installed';
+        document.getElementById('install-all-btn').disabled = true;
+      } else if (installedCount > 0) {
+        document.getElementById('cli-status').textContent = `${installedCount}/3 installed`;
+      }
+    }
+
+    async function installAllClis() {
+      const btn = document.getElementById('install-all-btn');
+      btn.innerHTML = '<span class="spinner"></span>Installing...';
+      btn.disabled = true;
+
+      document.getElementById('cli-status').textContent = 'Installing...';
+      setStepState('step-cli', 'active');
+
+      const clis = ['gemini', 'codex', 'claude'];
+
+      for (const cli of clis) {
+        if (state.cli[cli]) continue; // Skip if already installed
+
+        setCliCardState(cli, 'installing', 'Installing...');
+
+        const result = await window.api.installCli(cli);
+
+        if (result.success) {
+          state.cli[cli] = true;
+          setCliCardState(cli, 'installed', result.message);
+          document.getElementById(`auth-${cli}-btn`).disabled = false;
+        } else {
+          setCliCardState(cli, 'error', 'Failed');
+          console.error(`Failed to install ${cli}:`, result.message);
+        }
+
+        updateProgress();
+      }
+
+      await checkAllClis();
+    }
+
+    async function authenticateCli(cli) {
+      const btn = document.getElementById(`auth-${cli}-btn`);
+      btn.innerHTML = '<span class="spinner"></span>Opening...';
+      btn.disabled = true;
+
+      const result = await window.api.authenticateCli(cli);
+
+      btn.textContent = `Open ${cli.charAt(0).toUpperCase() + cli.slice(1)}`;
+      btn.disabled = false;
+
+      if (!result.success) {
+        document.getElementById('auth-content').innerHTML +=
+          `<div class="message error">Error: ${result.message}</div>`;
+      }
+    }
+
+    // Event listeners
+    document.getElementById('install-all-btn').addEventListener('click', installAllClis);
+    document.getElementById('auth-gemini-btn').addEventListener('click', () => authenticateCli('gemini'));
+    document.getElementById('auth-codex-btn').addEventListener('click', () => authenticateCli('codex'));
+    document.getElementById('auth-claude-btn').addEventListener('click', () => authenticateCli('claude'));
+
+    // Initial check
+    checkPrerequisites();
+  </script>
+</body>
+</html>

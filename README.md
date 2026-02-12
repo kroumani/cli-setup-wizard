@@ -1,84 +1,73 @@
-# CLI Setup Wizard for Mac
+# CLI Setup Wizard
 
-One-command setup for **Gemini**, **Codex**, and **Claude** CLI tools.
+A beautiful Mac app that installs and configures **Gemini**, **Codex**, and **Claude** CLI tools with visual feedback.
 
-## Quick Start
+![CLI Setup Wizard](https://img.shields.io/badge/Platform-macOS-blue) ![License](https://img.shields.io/badge/License-MIT-green)
 
-Open Terminal and run:
+## Download
 
+Get the latest release from the [Releases page](https://github.com/kroumani/cli-setup-wizard/releases).
+
+Or use the shell script:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kroumani/cli-setup-wizard/master/setup-cli-tools.sh | bash
 ```
 
-Or download and run locally:
+## Features
 
-```bash
-chmod +x setup-cli-tools.sh
-./setup-cli-tools.sh
-```
-
-## What Happens
-
-The script runs **everything automatically**. You just need to:
-
-1. **Press ENTER** to start
-2. **Sign in via browser** when each tool opens authentication
-3. **Press ENTER** after each authentication completes
-
-That's it!
+- **Visual Progress** - See exactly what's happening at each step
+- **One-Click Install** - Install all three CLI tools with a single button
+- **Automatic Prereqs** - Installs Homebrew and Node.js if needed
+- **Easy Auth** - Opens each CLI for browser authentication
 
 ## What Gets Installed
 
-| Tool | Package | Auth Method |
+| Tool | Package | Description |
 |------|---------|-------------|
-| **Gemini CLI** | `@google/gemini-cli` | Google account (browser) |
-| **Codex CLI** | `@openai/codex` | ChatGPT/OpenAI account (browser) |
-| **Claude CLI** | `@anthropic-ai/claude-code` | Anthropic account (browser) |
+| **Gemini** | `@google/gemini-cli` | Google's AI coding assistant |
+| **Codex** | `@openai/codex` | OpenAI's coding agent |
+| **Claude** | `@anthropic-ai/claude-code` | Anthropic's Claude Code |
 
-Prerequisites installed if missing:
-- Homebrew
-- Node.js 18+
+## How It Works
 
-## After Setup
+1. **Launch the app** - Opens the setup wizard
+2. **Prerequisites check** - Verifies/installs Homebrew & Node.js
+3. **Install CLIs** - Click "Install All" to install all three tools
+4. **Authenticate** - Click each "Open" button to authenticate via browser
 
-Just run any tool from your project directory:
-
-```bash
-cd your-project
-gemini    # Start Gemini
-codex     # Start Codex
-claude    # Start Claude
-```
-
-## Troubleshooting
-
-### "command not found"
-
-Open a new terminal window, or run:
-```bash
-source ~/.zshrc
-```
-
-### Re-authenticate a tool
+## Development
 
 ```bash
-gemini    # Re-runs auth if needed
-codex     # Re-runs auth if needed
-claude    # Re-runs auth if needed
+# Install dependencies
+npm install
+
+# Run in development
+npm start
+
+# Build Mac app
+npm run build
 ```
 
-### Manual installation
+## Building
 
-If the script fails for a specific tool:
+The GitHub Actions workflow automatically builds:
+- `.dmg` installer
+- `.zip` archive
 
+To trigger a release, push a tag:
 ```bash
-npm install -g @google/gemini-cli     # Gemini
-npm install -g @openai/codex          # Codex
-npm install -g @anthropic-ai/claude-code  # Claude
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
-## References
+## Screenshots
 
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli)
-- [Codex CLI](https://github.com/openai/codex)
-- [Claude Code](https://claude.ai/code)
+The app features:
+- Dark gradient UI with neon accents
+- Real-time progress indicators
+- Status cards for each CLI tool
+- Success/error visual feedback
+
+## License
+
+MIT

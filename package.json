@@ -1,0 +1,38 @@
+{
+  "name": "cli-setup-wizard",
+  "version": "1.0.0",
+  "description": "Setup wizard for Gemini, Codex, and Claude CLI tools",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac",
+    "build:dmg": "electron-builder --mac dmg"
+  },
+  "author": "PQME Pro",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.kroumani.cli-setup-wizard",
+    "productName": "CLI Setup Wizard",
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": ["dmg", "zip"],
+      "icon": "assets/icon.icns"
+    },
+    "dmg": {
+      "title": "CLI Setup Wizard",
+      "icon": "assets/icon.icns",
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    },
+    "files": [
+      "**/*",
+      "!**/*.md"
+    ]
+  }
+}
