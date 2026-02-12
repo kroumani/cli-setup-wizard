@@ -139,7 +139,7 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
       break;
     case 'codex':
       cmd = 'codex';
-      args = ['exec', message];
+      args = ['exec', '--skip-git-repo-check', message];
       break;
     default:
       return { success: false, error: `Unknown CLI: ${cli}` };

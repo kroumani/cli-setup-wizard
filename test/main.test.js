@@ -37,7 +37,7 @@ function buildCliArgs(cli, message, sessionId) {
     case 'gemini':
       return { cmd: 'gemini', args: ['-p', message, '--output-format', 'text'] };
     case 'codex':
-      return { cmd: 'codex', args: ['exec', message] };
+      return { cmd: 'codex', args: ['exec', '--skip-git-repo-check', message] };
     default:
       return null;
   }
@@ -117,7 +117,7 @@ describe('buildCliArgs', () => {
     const result = buildCliArgs('codex', 'write a function');
     assert.deepStrictEqual(result, {
       cmd: 'codex',
-      args: ['exec', 'write a function']
+      args: ['exec', '--skip-git-repo-check', 'write a function']
     });
   });
 
