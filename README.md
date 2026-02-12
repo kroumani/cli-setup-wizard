@@ -7,7 +7,7 @@ One-command setup for **Gemini**, **Codex**, and **Claude** CLI tools.
 Open Terminal and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_REPO/main/mac-setup/setup-cli-tools.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kroumani/cli-setup-wizard/master/setup-cli-tools.sh | bash
 ```
 
 Or download and run locally:
