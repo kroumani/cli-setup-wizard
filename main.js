@@ -123,13 +123,11 @@ ipcMain.handle('install-cli', async (_event, cli) => {
 // ─── IPC: Chat ──────────────────────────────────────────────────────────────
 
 ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
-  // Build the CLI command for non-interactive use
-  const escaped = message.replace(/"/g, '\\"');
   let cmd, args;
 
   switch (cli) {
     case 'claude':
-      args = ['-p', message, '--output-format', 'text'];
+      args = ['-p', message, '--output-format', 'stream-json'];
       if (sessionId) args.push('--continue');
       cmd = 'claude';
       break;
@@ -146,12 +144,13 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
       return { success: false, error: `Unknown CLI: ${cli}` };
   }
 
-  // Generate a unique process ID
   const procId = `${cli}-${Date.now()}`;
 
   return new Promise((resolve) => {
     let output = '';
+    let textContent = '';
     let errorOutput = '';
+    let lineBuffer = '';
 
     const proc = spawn(cmd, args, {
       shell: true,
@@ -161,12 +160,57 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
 
     activeProcesses.set(procId, proc);
 
-    // Stream stdout chunks to renderer
     proc.stdout.on('data', (data) => {
-      const chunk = data.toString();
-      output += chunk;
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('stream-chunk', cli, chunk);
+      const raw = data.toString();
+      output += raw;
+
+      // For Claude stream-json: parse newline-delimited JSON events
+      if (cli === 'claude') {
+        lineBuffer += raw;
+        const lines = lineBuffer.split('\n');
+        lineBuffer = lines.pop(); // keep incomplete line in buffer
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const evt = JSON.parse(line);
+            // Extract text from assistant content blocks
+            if (evt.type === 'content_block_delta' && evt.delta?.text) {
+              textContent += evt.delta.text;
+              if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('stream-chunk', cli, evt.delta.text);
+              }
+            } else if (evt.type === 'assistant' && evt.message?.content) {
+              // Full message event (fallback)
+              for (const block of evt.message.content) {
+                if (block.type === 'text') {
+                  textContent += block.text;
+                  if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.webContents.send('stream-chunk', cli, block.text);
+                  }
+                }
+              }
+            } else if (evt.type === 'result' && evt.result) {
+              // Final result text
+              if (!textContent && typeof evt.result === 'string') {
+                textContent = evt.result;
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                  mainWindow.webContents.send('stream-chunk', cli, evt.result);
+                }
+              }
+            }
+          } catch {
+            // Not JSON — treat as raw text
+            textContent += line;
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('stream-chunk', cli, line);
+            }
+          }
+        }
+      } else {
+        // Gemini + Codex: stream raw text as before
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('stream-chunk', cli, raw);
+        }
       }
     });
 
@@ -179,8 +223,9 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send('stream-end', cli);
       }
-      if (code === 0 || output.length > 0) {
-        resolve({ success: true, response: output.trim(), procId });
+      const finalText = cli === 'claude' ? textContent.trim() : output.trim();
+      if (code === 0 || finalText.length > 0) {
+        resolve({ success: true, response: finalText, procId });
       } else {
         resolve({
           success: false,

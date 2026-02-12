@@ -1,6 +1,6 @@
 {
   "name": "cli-setup-wizard",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Chat interface for Gemini, Codex, and Claude CLI tools",
   "main": "main.js",
   "scripts": {
