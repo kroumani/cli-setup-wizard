@@ -127,7 +127,7 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
 
   switch (cli) {
     case 'claude':
-      args = ['-p', message, '--output-format', 'text'];
+      args = ['-p', message, '--output-format', 'text', '--no-session-persistence'];
       if (sessionId) args.push('--continue');
       cmd = 'claude';
       break;
@@ -150,11 +150,23 @@ ipcMain.handle('send-message', async (event, cli, message, sessionId) => {
     let output = '';
     let errorOutput = '';
 
-    const proc = spawn(cmd, args, {
+    // shell: true needed for .cmd scripts on Windows (gemini, codex)
+    // but it doesn't auto-quote args, so we quote any arg with spaces
+    const safeArgs = args.map(a =>
+      a.includes(' ') || a.includes('"')
+        ? `"${a.replace(/"/g, '\\"')}"`
+        : a
+    );
+
+    const proc = spawn(cmd, safeArgs, {
       shell: true,
       env: getEnhancedEnv(),
-      cwd: os.homedir()
+      cwd: os.homedir(),
+      stdio: ['pipe', 'pipe', 'pipe']
     });
+
+    // Close stdin immediately so CLIs don't wait for interactive input
+    proc.stdin.end();
 
     activeProcesses.set(procId, proc);
 
